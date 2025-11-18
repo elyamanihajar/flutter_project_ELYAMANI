@@ -167,7 +167,9 @@ class _LoginPageState extends State<LoginPage> {
                 SizedBox(height: 50),
                 ElevatedButton(
                   onPressed: () {
-                    SignIn();
+                    if (_formKey.currentState!.validate()) {
+                      SignIn();
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     padding: EdgeInsets.symmetric(vertical: 15),

@@ -210,7 +210,9 @@ class _RegisterPageState extends State<RegisterPage> {
                 // --- Bouton d'action mis à jour ---
                 ElevatedButton(
                   onPressed: () {
-                    SignUp();
+                    if (_formKey.currentState!.validate()) {
+                      SignUp();
+                    }
                     /*
                     if (_formKey.currentState!.validate()) {
                       ScaffoldMessenger.of(context).showSnackBar(
