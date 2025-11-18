@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
@@ -50,8 +52,12 @@ class _LoginPageState extends State<LoginPage> {
         Navigator.pushReplacementNamed(context, '/home');
       }
     } on FirebaseAuthException catch (e) {
+      print("CODE ERREUR RECU : ${e.code}");
       String message;
       switch (e.code) {
+        case 'invalid-credential':
+          message = "Email ou mot de passe incorrect.";
+          break;
         case 'user-not-found':
           message = "No user found for that email.";
           break;
@@ -70,7 +76,21 @@ class _LoginPageState extends State<LoginPage> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(message)));
-      print("FirebaseAuth");
+      print("FirebaseAuthException: $message");
+    } on SocketException catch (e) {
+      String message = "Network error: Please check your internet connexion.";
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
+      print("SocketException:$e");
+    } catch (e) {
+      String message = "An unexpected error occured.";
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
+      print("Unknown error:$e");
     }
   }
 
@@ -87,94 +107,92 @@ class _LoginPageState extends State<LoginPage> {
       ),
       body: Padding(
         padding: EdgeInsets.symmetric(horizontal: 20.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Image.asset("images/logoWelcome.png", height: 200, width: 200),
-              SizedBox(height: 10),
-              Text(
-                "Welcome back !",
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 40,
-                  color: Colors.brown,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              SizedBox(height: 20),
-              TextFormField(
-                controller: _emailController,
-                decoration: InputDecoration(
-                  labelText: 'Email',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(15),
+        // --- Utilisation d'un SingleChildScrollView pour éviter le débordement du clavier ---
+        child: SingleChildScrollView(
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Image.asset("images/logoWelcome.png", height: 200, width: 200),
+                SizedBox(height: 10),
+                Text(
+                  "Welcome back !",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 40,
+                    color: Colors.brown,
+                    fontWeight: FontWeight.w600,
                   ),
-                  prefixIcon: Icon(Icons.email, color: Colors.teal),
                 ),
-                keyboardType: TextInputType.emailAddress,
-                validator: _validateEmail,
-              ),
-              SizedBox(height: 30),
-              TextFormField(
-                obscureText: !passwordVisibility,
-                controller: _passController,
-                decoration: InputDecoration(
-                  labelText: 'Password',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(15),
+                SizedBox(height: 20),
+                TextFormField(
+                  controller: _emailController,
+                  decoration: InputDecoration(
+                    labelText: 'Email',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    prefixIcon: Icon(Icons.email, color: Colors.teal),
                   ),
-                  prefixIcon: Icon(Icons.password, color: Colors.teal),
-                  suffixIcon: IconButton(
-                    onPressed: () {
-                      setState(() {
-                        passwordVisibility = !passwordVisibility;
-                      });
-                    },
-                    icon: Icon(
-                      passwordVisibility
-                          ? Icons.visibility
-                          : Icons.visibility_off,
+                  keyboardType: TextInputType.emailAddress,
+                  validator: _validateEmail,
+                ),
+                SizedBox(height: 30),
+                TextFormField(
+                  obscureText: !passwordVisibility,
+                  controller: _passController,
+                  decoration: InputDecoration(
+                    labelText: 'Password',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    prefixIcon: Icon(Icons.password, color: Colors.teal),
+                    suffixIcon: IconButton(
+                      onPressed: () {
+                        setState(() {
+                          passwordVisibility = !passwordVisibility;
+                        });
+                      },
+                      icon: Icon(
+                        passwordVisibility
+                            ? Icons.visibility
+                            : Icons.visibility_off,
+                      ),
                     ),
                   ),
+                  validator: _validatePass,
                 ),
-                validator: _validatePass,
-              ),
-              SizedBox(height: 50),
-              ElevatedButton(
-                onPressed: () {
-                  if (_formKey.currentState!.validate()) {
-                    ScaffoldMessenger.of(
-                      context,
-                    ).showSnackBar(SnackBar(content: Text("Processing Login")));
-                    Navigator.pushNamed(context, '/home');
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(vertical: 15),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
+                SizedBox(height: 50),
+                ElevatedButton(
+                  onPressed: () {
+                    SignIn();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    padding: EdgeInsets.symmetric(vertical: 15),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    backgroundColor: Colors.brown,
                   ),
-                  backgroundColor: Colors.brown,
+                  child: Text(
+                    'Login',
+                    style: TextStyle(color: Colors.white, fontSize: 30),
+                  ),
                 ),
-                child: Text(
-                  'Login',
-                  style: TextStyle(color: Colors.white, fontSize: 30),
+                SizedBox(height: 30),
+                TextButton(
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/register');
+                  },
+                  child: Text(
+                    "Don't have an account ? Register here",
+                    style: TextStyle(color: Colors.deepOrange, fontSize: 17),
+                  ),
                 ),
-              ),
-              SizedBox(height: 30),
-              TextButton(
-                onPressed: () {
-                  Navigator.pushNamed(context, '/register');
-                },
-                child: Text(
-                  "Don't have an account ? Register here",
-                  style: TextStyle(color: Colors.deepOrange, fontSize: 17),
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

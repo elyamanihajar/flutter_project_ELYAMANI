@@ -110,7 +110,8 @@ class HomePage extends StatelessWidget {
             Divider(color: Colors.brown, thickness: 2),
             ListTile(
               onTap: () {
-                Navigator.pop(context);
+                Navigator.pushNamed(context, '/login');
+                //Navigator.pop(context);
               },
               leading: Icon(Icons.logout, color: Colors.teal),
               title: Text(
